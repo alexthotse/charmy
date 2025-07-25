@@ -273,6 +273,9 @@ func setProviderDefaults() {
 	if apiKey := os.Getenv("XAI_API_KEY"); apiKey != "" {
 		viper.SetDefault("providers.xai.apiKey", apiKey)
 	}
+	if apiKey := os.Getenv("A2A_ENDPOINT"); apiKey != "" {
+		viper.SetDefault("providers.a2a.endpoint", apiKey)
+	}
 	if apiKey := os.Getenv("AZURE_OPENAI_ENDPOINT"); apiKey != "" {
 		// api-key may be empty when using Entra ID credentials – that's okay
 		viper.SetDefault("providers.azure.apiKey", os.Getenv("AZURE_OPENAI_API_KEY"))
@@ -664,6 +667,10 @@ func getProviderAPIKey(provider models.ModelProvider) string {
 		if hasVertexAICredentials() {
 			return "vertex-ai-credentials-available"
 		}
+	case models.ProviderA2A:
+		if os.Getenv("A2A_ENDPOINT") != "" {
+			return "a2a-endpoint-available"
+		}
 	}
 	return ""
 }
@@ -809,6 +816,18 @@ func setDefaultModelForAgent(agent AgentName) bool {
 
 		cfg.Agents[agent] = Agent{
 			Model:     model,
+			MaxTokens: maxTokens,
+		}
+		return true
+	}
+
+	if os.Getenv("A2A_ENDPOINT") != "" {
+		maxTokens := int64(5000)
+		if agent == AgentTitle {
+			maxTokens = 80
+		}
+		cfg.Agents[agent] = Agent{
+			Model:     models.A2AGeneric,
 			MaxTokens: maxTokens,
 		}
 		return true

@@ -30,6 +30,7 @@ const ( // GEMINI
 
 const (
 	ProviderBedrock ModelProvider = "bedrock"
+	ProviderA2A     ModelProvider = "a2a"
 	// ForTests
 	ProviderMock ModelProvider = "__mock"
 )
@@ -45,6 +46,7 @@ var ProviderPopularity = map[ModelProvider]int{
 	ProviderBedrock:    7,
 	ProviderAzure:      8,
 	ProviderVertexAI:   9,
+	ProviderA2A:        10,
 }
 
 var SupportedModels = map[ModelID]Model{
@@ -95,4 +97,5 @@ func init() {
 	maps.Copy(SupportedModels, XAIModels)
 	maps.Copy(SupportedModels, VertexAIGeminiModels)
 	maps.Copy(SupportedModels, CopilotModels)
+	maps.Copy(SupportedModels, A2AModels)
 }
