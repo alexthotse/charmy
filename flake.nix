@@ -18,7 +18,7 @@
           inherit system;
           overlays = [ gomod2nix.overlays.default ];
         };
-        go-version = pkgs.go_22;
+        go-version = pkgs.go_1_25;
       in
       {
         packages.default = pkgs.buildGoApplication {

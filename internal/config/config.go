@@ -868,6 +868,12 @@ func Get() *Config {
 	return cfg
 }
 
+// Reset is for testing purposes only.
+func Reset() {
+	cfg = nil
+	viper.Reset()
+}
+
 // WorkingDirectory returns the current working directory from the configuration.
 func WorkingDirectory() string {
 	if cfg == nil {

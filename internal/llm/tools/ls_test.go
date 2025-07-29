@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/opencode-ai/opencode/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +24,19 @@ func TestLsTool_Info(t *testing.T) {
 	assert.Contains(t, info.Required, "path")
 }
 
+func setupTestConfig(t *testing.T) {
+	// Create a temporary directory for the test configuration
+	tempDir, err := os.MkdirTemp("", "config_test")
+	require.NoError(t, err)
+	t.Cleanup(func() { os.RemoveAll(tempDir) })
+
+	// Load the configuration in the temporary directory
+	_, err = config.Load(tempDir, false)
+	require.NoError(t, err)
+}
+
 func TestLsTool_Run(t *testing.T) {
+	setupTestConfig(t)
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "ls_tool_test")
 	require.NoError(t, err)
@@ -193,6 +206,10 @@ func TestLsTool_Run(t *testing.T) {
 		// Change to a directory above the temp directory
 		parentDir := filepath.Dir(tempDir)
 		err = os.Chdir(parentDir)
+		require.NoError(t, err)
+
+		config.Reset()
+		_, err = config.Load(parentDir, false)
 		require.NoError(t, err)
 		
 		tool := NewLsTool()
