@@ -9,16 +9,22 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
+    pkl.url = "github:apple/pkl-lang-nix";
+    pkl-go.url = "github:apple/pkl-go-nix";
   };
 
-  outputs = { self, nixpkgs, flake-utils, gomod2nix, ... }:
+  outputs = { self, nixpkgs, flake-utils, gomod2nix, pkl, pkl-go, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ gomod2nix.overlays.default ];
+          overlays = [
+            gomod2nix.overlays.default
+            pkl.overlays.default
+            pkl-go.overlays.default
+          ];
         };
-        go-version = pkgs.go_1_25;
+        go-version = pkgs.go_22;
       in
       {
         packages.default = pkgs.buildGoApplication {
@@ -37,12 +43,22 @@
             pkgs.gotools
             pkgs.go-outline
             pkgs.delve
+            pkgs.podman-compose
+            pkgs.pocketbase
+            pkgs.pkl
+            pkgs.pkl-go
           ];
         };
 
         nixosModules.default = {
           config = {
-            environment.systemPackages = [ self.packages.${system}.default ];
+            environment.systemPackages = [
+              self.packages.${system}.default
+              pkgs.podman-compose
+              pkgs.pocketbase
+              pkgs.pkl
+              pkgs.pkl-go
+            ];
           };
         };
 
