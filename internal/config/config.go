@@ -360,6 +360,15 @@ func setProviderDefaults() {
 		return
 	}
 
+	// Ollama configuration
+	if hasOllamaCredentials() {
+		viper.SetDefault("agents.coder.model", models.OllamaLlama3)
+		viper.SetDefault("agents.summarizer.model", models.OllamaLlama3)
+		viper.SetDefault("agents.task.model", models.OllamaLlama3)
+		viper.SetDefault("agents.title.model", models.OllamaLlama3)
+		return
+	}
+
 	// AWS Bedrock configuration
 	if hasAWSCredentials() {
 		viper.SetDefault("agents.coder.model", models.BedrockClaude37Sonnet)
@@ -422,6 +431,14 @@ func hasVertexAICredentials() bool {
 	}
 	// Check for Google Cloud project and location
 	if os.Getenv("GOOGLE_CLOUD_PROJECT") != "" && (os.Getenv("GOOGLE_CLOUD_REGION") != "" || os.Getenv("GOOGLE_CLOUD_LOCATION") != "") {
+		return true
+	}
+	return false
+}
+
+func hasOllamaCredentials() bool {
+	// Check for explicit Ollama parameters
+	if endpoint := os.Getenv("OLLAMA_ENDPOINT"); endpoint != "" {
 		return true
 	}
 	return false

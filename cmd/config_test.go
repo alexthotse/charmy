@@ -18,4 +18,11 @@ func TestConfigCmd(t *testing.T) {
 
 	cfg := config.Get()
 	require.Equal(t, "test-key", cfg.Providers[models.ProviderOpenAI].APIKey)
+
+	rootCmd.SetArgs([]string{"config", "llm", "ollama"})
+	err = rootCmd.Execute()
+	require.NoError(t, err)
+
+	cfg = config.Get()
+	require.Equal(t, models.OllamaLlama3, cfg.Agents[config.AgentCoder].Model)
 }
