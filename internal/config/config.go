@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 
+	customerrors "github.com/opencode-ai/opencode/internal/errors"
 	"github.com/opencode-ai/opencode/internal/llm/models"
 	"github.com/opencode-ai/opencode/internal/logging"
 	"github.com/spf13/viper"
@@ -277,6 +278,7 @@ func setProviderDefaults() {
 		// api-key may be empty when using Entra ID credentials – that's okay
 		viper.SetDefault("providers.azure.apiKey", os.Getenv("AZURE_OPENAI_API_KEY"))
 	}
+	viper.SetDefault("providers.local.endpoint", "http://localhost:11434")
 	if apiKey, err := LoadGitHubToken(); err == nil && apiKey != "" {
 		viper.SetDefault("providers.copilot.apiKey", apiKey)
 		if viper.GetString("providers.copilot.apiKey") == "" {
@@ -358,6 +360,15 @@ func setProviderDefaults() {
 		return
 	}
 
+	// Ollama configuration
+	if hasOllamaCredentials() {
+		viper.SetDefault("agents.coder.model", models.OllamaLlama3)
+		viper.SetDefault("agents.summarizer.model", models.OllamaLlama3)
+		viper.SetDefault("agents.task.model", models.OllamaLlama3)
+		viper.SetDefault("agents.title.model", models.OllamaLlama3)
+		return
+	}
+
 	// AWS Bedrock configuration
 	if hasAWSCredentials() {
 		viper.SetDefault("agents.coder.model", models.BedrockClaude37Sonnet)
@@ -425,6 +436,14 @@ func hasVertexAICredentials() bool {
 	return false
 }
 
+func hasOllamaCredentials() bool {
+	// Check for explicit Ollama parameters
+	if endpoint := os.Getenv("OLLAMA_ENDPOINT"); endpoint != "" {
+		return true
+	}
+	return false
+}
+
 func hasCopilotCredentials() bool {
 	// Check for explicit Copilot parameters
 	if token, _ := LoadGitHubToken(); token != "" {
@@ -487,7 +506,7 @@ func validateAgent(cfg *Config, name AgentName, agent Agent) error {
 		if setDefaultModelForAgent(name) {
 			logging.Info("set default model for agent", "agent", name, "model", cfg.Agents[name].Model)
 		} else {
-			return fmt.Errorf("no valid provider available for agent %s", name)
+			return customerrors.Newf(customerrors.ErrNotFound, "no valid provider available for agent %s", name)
 		}
 		return nil
 	}
@@ -509,7 +528,7 @@ func validateAgent(cfg *Config, name AgentName, agent Agent) error {
 			if setDefaultModelForAgent(name) {
 				logging.Info("set default model for agent", "agent", name, "model", cfg.Agents[name].Model)
 			} else {
-				return fmt.Errorf("no valid provider available for agent %s", name)
+				return customerrors.Newf(customerrors.ErrNotFound, "no valid provider available for agent %s", name)
 			}
 		} else {
 			// Add provider with API key from environment
@@ -529,7 +548,7 @@ func validateAgent(cfg *Config, name AgentName, agent Agent) error {
 		if setDefaultModelForAgent(name) {
 			logging.Info("set default model for agent", "agent", name, "model", cfg.Agents[name].Model)
 		} else {
-			return fmt.Errorf("no valid provider available for agent %s", name)
+			return customerrors.Newf(customerrors.ErrNotFound, "no valid provider available for agent %s", name)
 		}
 	}
 
@@ -926,6 +945,35 @@ func UpdateTheme(themeName string) error {
 	// Update the file config
 	return updateCfgFile(func(config *Config) {
 		config.TUI.Theme = themeName
+	})
+}
+
+func UpdateProviderAPIKey(provider models.ModelProvider, apiKey string) error {
+	if cfg == nil {
+		return fmt.Errorf("config not loaded")
+	}
+
+	if cfg.Providers == nil {
+		cfg.Providers = make(map[models.ModelProvider]Provider)
+	}
+
+	providerCfg, ok := cfg.Providers[provider]
+	if !ok {
+		providerCfg = Provider{}
+	}
+	providerCfg.APIKey = apiKey
+	cfg.Providers[provider] = providerCfg
+
+	return updateCfgFile(func(config *Config) {
+		if config.Providers == nil {
+			config.Providers = make(map[models.ModelProvider]Provider)
+		}
+		providerCfg, ok := config.Providers[provider]
+		if !ok {
+			providerCfg = Provider{}
+		}
+		providerCfg.APIKey = apiKey
+		config.Providers[provider] = providerCfg
 	})
 }
 
