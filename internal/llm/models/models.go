@@ -29,26 +29,34 @@ const ( // GEMINI
 )
 
 const (
-	ProviderBedrock ModelProvider = "bedrock"
+	ProviderBedrock     ModelProvider = "bedrock"
+	ProviderA2A         ModelProvider = "a2a"
+	ProviderOllama      ModelProvider = "ollama"
+	ProviderHuggingFace ModelProvider = "huggingface"
+	ProviderReplicate   ModelProvider = "replicate"
+	ProviderCohere      ModelProvider = "cohere"
 	// ForTests
 	ProviderMock ModelProvider = "__mock"
 )
 
 // Providers in order of popularity
 var ProviderPopularity = map[ModelProvider]int{
-	ProviderOllama:     1,
-	ProviderOpenRouter: 2,
-	ProviderGemini:     3,
-	ProviderCopilot:    4,
-	ProviderAnthropic:  5,
-	ProviderOpenAI:     6,
-	ProviderGROQ:       7,
-	ProviderBedrock:    8,
-	ProviderAzure:      9,
-	ProviderVertexAI:   10,
-	ProviderHuggingFace: 11,
-	ProviderReplicate: 12,
-	ProviderCohere:    13,
+
+	ProviderOllama:      1,
+	ProviderCopilot:     2,
+	ProviderAnthropic:   3,
+	ProviderOpenAI:      4,
+	ProviderGemini:      5,
+	ProviderGROQ:        6,
+	ProviderOpenRouter:  7,
+	ProviderBedrock:     8,
+	ProviderAzure:       9,
+	ProviderVertexAI:    10,
+	ProviderA2A:         11,
+	ProviderHuggingFace: 12,
+	ProviderReplicate:   13,
+	ProviderCohere:      14,
+
 }
 
 var SupportedModels = map[ModelID]Model{
@@ -99,6 +107,7 @@ func init() {
 	maps.Copy(SupportedModels, XAIModels)
 	maps.Copy(SupportedModels, VertexAIGeminiModels)
 	maps.Copy(SupportedModels, CopilotModels)
+	maps.Copy(SupportedModels, A2AModels)
 	maps.Copy(SupportedModels, OllamaModels)
 	maps.Copy(SupportedModels, HuggingFaceModels)
 	maps.Copy(SupportedModels, ReplicateModels)
