@@ -273,9 +273,6 @@ func setProviderDefaults() {
 	if apiKey := os.Getenv("XAI_API_KEY"); apiKey != "" {
 		viper.SetDefault("providers.xai.apiKey", apiKey)
 	}
-	if apiKey := os.Getenv("A2A_ENDPOINT"); apiKey != "" {
-		viper.SetDefault("providers.a2a.endpoint", apiKey)
-	}
 	if apiKey := os.Getenv("AZURE_OPENAI_ENDPOINT"); apiKey != "" {
 		// api-key may be empty when using Entra ID credentials – that's okay
 		viper.SetDefault("providers.azure.apiKey", os.Getenv("AZURE_OPENAI_API_KEY"))
@@ -289,25 +286,15 @@ func setProviderDefaults() {
 	}
 
 	// Use this order to set the default models
-	// 1. Local
-	// 2. Copilot
-	// 3. Anthropic
-	// 4. OpenAI
-	// 5. Google Gemini
-	// 6. Groq
-	// 7. OpenRouter
-	// 8. AWS Bedrock
-	// 9. Azure
-	// 10. Google Cloud VertexAI
-
-	// local provider configuration
-	if endpoint := viper.GetString("providers.local.endpoint"); strings.TrimSpace(endpoint) != "" {
-		viper.SetDefault("agents.coder.model", "local")
-		viper.SetDefault("agents.summarizer.model", "local")
-		viper.SetDefault("agents.task.model", "local")
-		viper.SetDefault("agents.title.model", "local")
-		return
-	}
+	// 1. Copilot
+	// 2. Anthropic
+	// 3. OpenAI
+	// 4. Google Gemini
+	// 5. Groq
+	// 6. OpenRouter
+	// 7. AWS Bedrock
+	// 8. Azure
+	// 9. Google Cloud VertexAI
 
 	// copilot configuration
 	if key := viper.GetString("providers.copilot.apiKey"); strings.TrimSpace(key) != "" {
@@ -677,10 +664,6 @@ func getProviderAPIKey(provider models.ModelProvider) string {
 		if hasVertexAICredentials() {
 			return "vertex-ai-credentials-available"
 		}
-	case models.ProviderA2A:
-		if os.Getenv("A2A_ENDPOINT") != "" {
-			return "a2a-endpoint-available"
-		}
 	}
 	return ""
 }
@@ -826,18 +809,6 @@ func setDefaultModelForAgent(agent AgentName) bool {
 
 		cfg.Agents[agent] = Agent{
 			Model:     model,
-			MaxTokens: maxTokens,
-		}
-		return true
-	}
-
-	if os.Getenv("A2A_ENDPOINT") != "" {
-		maxTokens := int64(5000)
-		if agent == AgentTitle {
-			maxTokens = 80
-		}
-		cfg.Agents[agent] = Agent{
-			Model:     models.A2AGeneric,
 			MaxTokens: maxTokens,
 		}
 		return true
