@@ -69,7 +69,6 @@ type providerClientOptions struct {
 	geminiOptions    []GeminiOption
 	bedrockOptions   []BedrockOption
 	copilotOptions   []CopilotOption
-	mockClient       *MockClient
 }
 
 type ProviderClientOption func(*providerClientOptions)
@@ -153,26 +152,6 @@ func NewProvider(providerName models.ModelProvider, opts ...ProviderClientOption
 			options: clientOptions,
 			client:  newOpenAIClient(clientOptions),
 		}, nil
-	case models.ProviderOllama:
-		return &baseProvider[OpenAIClient]{
-			options: clientOptions,
-			client:  newOllamaClient(clientOptions),
-		}, nil
-	case models.ProviderHuggingFace:
-		return &baseProvider[OpenAIClient]{
-			options: clientOptions,
-			client:  newHuggingFaceClient(clientOptions),
-		}, nil
-	case models.ProviderReplicate:
-		return &baseProvider[OpenAIClient]{
-			options: clientOptions,
-			client:  newReplicateClient(clientOptions),
-		}, nil
-	case models.ProviderCohere:
-		return &baseProvider[OpenAIClient]{
-			options: clientOptions,
-			client:  newCohereClient(clientOptions),
-		}, nil
 	case models.ProviderLocal:
 		endpoint := os.Getenv("LOCAL_ENDPOINT")
 		if endpoint == "" {
@@ -189,9 +168,8 @@ func NewProvider(providerName models.ModelProvider, opts ...ProviderClientOption
 			client:  newOpenAIClient(clientOptions),
 		}, nil
 	case models.ProviderMock:
-		return &baseProvider[ProviderClient]{
-			client: clientOptions.mockClient,
-		}, nil
+		// TODO: implement mock client for test
+		panic("not implemented")
 	}
 	return nil, fmt.Errorf("provider not supported: %s", providerName)
 }
@@ -272,11 +250,5 @@ func WithBedrockOptions(bedrockOptions ...BedrockOption) ProviderClientOption {
 func WithCopilotOptions(copilotOptions ...CopilotOption) ProviderClientOption {
 	return func(options *providerClientOptions) {
 		options.copilotOptions = copilotOptions
-	}
-}
-
-func WithMockClient(client *MockClient) ProviderClientOption {
-	return func(options *providerClientOptions) {
-		options.mockClient = client
 	}
 }
